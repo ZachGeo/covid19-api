@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 
 import os
+import datetime
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -16,7 +17,7 @@ ma = Marshmallow(app)
 
 class CovidModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.String, unique=True)
+    date = db.Column(db.Date, unique=True)
     cases = db.Column(db.String)
     deaths = db.Column(db.String)
 
@@ -38,8 +39,9 @@ def add_covid():
     cases = request.json['cases']
     deaths = request.json['deaths']
 
-    new_covid = CovidModel(date, cases, deaths)
-
+    date_obj = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+    
+    new_covid = CovidModel(date_obj, cases, deaths)
     db.session.add(new_covid)
     db.session.commit()
 
@@ -57,6 +59,14 @@ def get_covid(date):
     covid_data = CovidModel.query.filter_by(date=date).first()
 
     return covid_schema.jsonify(covid_data)
+
+@app.route('/covidgr/period/<from_date>/<until_date>', methods=['GET'])
+def get_period_covid(from_date, until_date):
+    covid_period_data = CovidModel.query.filter(
+        CovidModel.date <= until_date).filter(CovidModel.date >= from_date)
+    result = covids_schema.dump(covid_period_data)
+
+    return jsonify(result)
 
 @app.route('/covidgr/<date>', methods=['PUT'])
 def update_covid(date):

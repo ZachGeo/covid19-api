@@ -6,7 +6,7 @@ headers = {
     'Content-type': 'application/json',
 }
 
-data = '{"date": "20201031", "cases": "2,055", "deaths": "6"}'
+data = '{"date": "2020-11-04", "cases": "2,646", "deaths": "18"}'
 
 response = requests.post(url, headers=headers, data=data)
 print(response.json())
