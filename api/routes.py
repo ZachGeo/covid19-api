@@ -1,56 +1,10 @@
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
+from flask import request, jsonify
+from api import app, db
+from api.models import CovidModel, SumCovidModel, WorldSumCovidModel
+from api.schemas import covid_schema, covids_schema, sum_covid_schema, sum_world_schema
 
-import os
 import datetime
 
-app = Flask(__name__)
-basedir = os.path.abspath(os.path.dirname(__file__))
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(
-    basedir, 'db.sqlite')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app)
-ma = Marshmallow(app)
-
-class CovidModel(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, unique=True)
-    cases = db.Column(db.String)
-    deaths = db.Column(db.String)
-
-    def __init__(self, date, cases, deaths):
-        self.date = date
-        self.cases = cases
-        self.deaths = deaths
-
-class SumCovidModel(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    sum_cases = db.Column(db.String)
-    sum_deaths = db.Column(db.String)
-    sum_recovered = db.Column(db.String)
-
-    def __init__(self, sum_cases, sum_deaths, sum_recovered):
-        self.sum_cases = sum_cases
-        self.sum_deaths = sum_deaths
-        self.sum_recovered = sum_recovered
-
-class CovidSchema(ma.Schema):
-    class Meta:
-        fields = ('date', 'cases', 'deaths')
-
-class SumCovidSchema(ma.Schema):
-    class Meta:
-        fields = ('sum_cases', 'sum_deaths', 'sum_recovered')
-
-covid_schema = CovidSchema()
-covids_schema = CovidSchema(many=True)
-
-sum_covid_schema = SumCovidSchema()
-
-# ----------- Summary CovidGR -------------
 @app.route('/summary/covidgr', methods=['POST'])
 def add_summary_covid():
     sum_cases = request.json['sum_cases']
@@ -95,7 +49,6 @@ def delete_summary_covid():
 
     return sum_covid_schema.jsonify(sum_covid_data)
 
-# -------------- CovidGR ---------------
 @app.route('/covidgr', methods=['POST'])
 def add_covid():
     date = request.json['date']
@@ -152,10 +105,44 @@ def update_covid(date):
 @app.route('/covidgr/<date>', methods=['DELETE'])
 def delete_covid(date):
     covid_data = CovidModel.query.filter_by(date=date).first()
+    
     db.session.delete(covid_data)
     db.session.commit()
 
     return covid_schema.jsonify(covid_data)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.route('/summary/covid/world', methods=['GET'])
+def get_summary_covid_world():
+    sum_covid_world_data = WorldSumCovid.query.filter_by(id=1).first()
+
+    return sum_covid_schema.jsonify(sum_covid_world_data)
+
+@app.route('/summary/covid/world', methods=['POST'])
+def add_summary_covid_world():
+    sum_world_cases = request.json['sum_world_cases']
+    sum_world_deaths = request.json['sum_world_deaths']
+    sum_world_recovered = request.json['sum_world_recovered']
+    
+    new_sum_covid_world = WorldSumCovidModel(
+        sum_world_cases, sum_world_deaths, sum_world_recovered)
+        
+    db.session.add(new_sum_covid_world)
+    db.session.commit()
+
+    return sum_world_schema.jsonify(new_sum_covid_world)
+
+@app.route('/summary/covid/world', methods=['PUT'])
+def update_summary_covid_world():
+    sum_covid_world_data = WorldSumCovidModel.query.filter_by(id=1).first()
+
+    sum_world_cases = request.json['sum_world_cases']
+    sum_world_deaths = request.json['sum_world_deaths']
+    sum_world_recovered = request.json['sum_world_recovered']
+
+    sum_covid_world_data.sum_world_cases = sum_world_cases
+    sum_covid_world_data.sum_world_deaths = sum_world_deaths
+    sum_covid_world_data.sum_world_recovered = sum_world_recovered
+
+    db.session.commit()
+
+    return sum_world_schema.jsonify(sum_covid_world_data)
