@@ -32,3 +32,12 @@ class WorldSumCovidModel(db.Model):
         self.sum_world_cases = sum_world_cases
         self.sum_world_deaths = sum_world_deaths
         self.sum_world_recovered = sum_world_recovered
+
+class TestCovidModel(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, unique=True)
+    daily_test = db.Column(db.String)
+
+    def __init__(self, date, daily_test):
+        self.date = date
+        self.daily_test = daily_test

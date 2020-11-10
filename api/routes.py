@@ -1,7 +1,9 @@
 from flask import request, jsonify
 from api import app, db
-from api.models import CovidModel, SumCovidModel, WorldSumCovidModel
-from api.schemas import covid_schema, covids_schema, sum_covid_schema, sum_world_schema
+from api.models import CovidModel, SumCovidModel, TestCovidModel
+from api.schemas import (
+    covid_schema, covids_schema, sum_covid_schema, 
+    sum_world_schema, test_covid_schema)
 
 import datetime
 
@@ -113,9 +115,10 @@ def delete_covid(date):
 
 @app.route('/summary/covid/world', methods=['GET'])
 def get_summary_covid_world():
-    sum_covid_world_data = WorldSumCovid.query.filter_by(id=1).first()
+    sum_covid_world_data = WorldSumCovidModel.query.filter_by(id=1).first()
+    result = sum_world_schema.dump(sum_covid_world_data)
 
-    return sum_covid_schema.jsonify(sum_covid_world_data)
+    return jsonify(result)
 
 @app.route('/summary/covid/world', methods=['POST'])
 def add_summary_covid_world():
@@ -146,3 +149,33 @@ def update_summary_covid_world():
     db.session.commit()
 
     return sum_world_schema.jsonify(sum_covid_world_data)
+
+@app.route('/summary/covid/world', methods=['DELETE'])
+def delete_summary_covid_world():
+    sum_covid_world_data = WorldSumCovidModel.query.filter_by(id=1).first()
+
+    db.session.delete(sum_covid_world_data)
+    db.session.commit()
+
+    return sum_world_schema.jsonify(sum_covid_world_data)
+
+@app.route('/covidgr/tests', methods=['GET'])
+def get_all_tests_covid():
+    all_covid_tests_data = TestCovidModel.query.all()
+    results = test_covid_schema.dump(all_covid_tests_data)
+
+    return jsonify(results)
+
+@app.route('/covidgr/tests', methods=['POST'])
+def add_tests_covid():
+    date = request.json['date']
+    daily_test = request.json['daily_test']
+
+    date_obj = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+
+    new_covid_tests_data = TestCovidModel(date_obj, daily_test)
+
+    db.session.add(new_covid_tests_data)
+    db.session.commit()
+
+    return test_covid_schema.jsonify(new_covid_tests_data)

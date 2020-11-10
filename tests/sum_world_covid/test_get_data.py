@@ -6,5 +6,5 @@ headers = {
     'Content-type': 'application/json',
 }
 
-response = requests.delete(url, headers=headers)
+response = requests.get(url, headers=headers)
 print(response.json())
