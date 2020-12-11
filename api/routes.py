@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from api import app, db
-from api.models import CovidModel, SumCovidModel, TestCovidModel
+from api.models import CovidModel, SumCovidModel, TestCovidModel, WorldSumCovidModel
 from api.schemas import (
     covid_schema, covids_schema, sum_covid_schema, 
     sum_world_schema, test_covid_schema)
