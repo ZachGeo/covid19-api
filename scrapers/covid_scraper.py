@@ -5,6 +5,7 @@ from lxml import html
 import requests
 import re
 import json
+import pickle
 
 class CovidScraper:
     def __init__(self):
@@ -29,17 +30,16 @@ class CovidScraper:
             self.get_summary_data(soup)
 
             if self.summary_data and self.covid_data:
-                post_daily_and_sum_covid_data = self.call_api_put_data(
-                    self.today, self.covid_data, self.summary_data)
-                data.append(post_daily_and_sum_covid_data)
+                self.storeSummaryData(self.summary_data)
+                self.storeData(self.today, self.covid_data)
         
-        if soup_test_page:
-            tests_data = self.get_tests_per_day(soup_test_page)
+        # if soup_test_page:
+        #     tests_data = self.get_tests_per_day(soup_test_page)
 
-            if tests_data[0]:
-                post_daily_tests_covid_data = self.call_api_post_tested_covid_data(
-                    tests_data[0], tests_data[1])
-                data.append(post_daily_tests_covid_data)
+        #     if tests_data[0]:
+        #         post_daily_tests_covid_data = self.call_api_post_tested_covid_data(
+        #             tests_data[0], tests_data[1])
+        #         data.append(post_daily_tests_covid_data)
 
         return data
 
@@ -106,24 +106,18 @@ class CovidScraper:
             self.api_test_url, headers=headers, data=data)
 
         return response_tests.json()
+    
+    def storeSummaryData(self, summary_data):
+        sum_data = {"sum_cases": summary_data[0], "sum_deaths": summary_data[1], "sum_recovered": summary_data[2]}
 
-    def call_api_put_data(self, today, covid_data, summary_data):
-        headers = {
-            'Content-type': 'application/json',
-        }
+        with open('../data/covid19_greece_summary_data.pickle', 'wb') as f:
+            pickle.dump(sum_data, f)
+    
+    def storeData(self, today, covid_data):
+        data = {"date": today, "cases": covid_data[0], "deaths": covid_data[1]}
 
-        data = json.dumps(
-            {"date": today, "cases": covid_data[0], "deaths": covid_data[1]})
-
-        sum_data = json.dumps(
-            {"sum_cases": summary_data[0], "sum_deaths": summary_data[1], "sum_recovered": summary_data[2]})
-
-        response = requests.post(self.api_url, headers=headers, data=data)
-
-        response_sum = requests.put(
-            self.api_sum_url, headers=headers, data=sum_data)
-
-        return [response.json(), response_sum.json()]
+        with open('../data/covid19_greece_data.pickle', 'wb') as f:
+            pickle.dump(data, f)
 
 if __name__ == '__main__':
     cs = CovidScraper()

@@ -3,3 +3,4 @@ flask-sqlalchemy==2.4.4
 flask-marshmallow==0.14.0
 marshmallow-sqlalchemy==0.24.0
 beautifulsoup4==4.9.3
+lxml==4.6.2
