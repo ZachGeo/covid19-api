@@ -7,21 +7,18 @@ class CovidGreeceSchema(ma.Schema):
 
 class SumCovidGreeceSchema(ma.Schema):
     class Meta:
-        fields = ('country', 'sum_greece_cases', 'sum_greece_deaths', 
-            'sum_greece_recovered', 'sum_greece_vaccinations', 
-            'last_modified_date')
+        fields = ('country', 'date', 'total_cases', 'total_deaths', 
+            'people_fully_vaccinated', 'population')
 
 class SumCovidWorldSchema(ma.Schema):
     class Meta:
-        fields = ('label', 'sum_world_cases', 'sum_world_deaths', 
-            'sum_world_recovered', 'sum_world_vaccinations', 
-            'last_date_modified')
+        fields = ('country',  'date', 'total_cases', 'total_deaths', 
+            'people_fully_vaccinated', 'population')
 
 class SumCovidCountrySchema(ma.Schema):
     class Meta:
-        fields = ('country', 'sum_country_cases', 'sum_contry_deaths', 
-            'sum_contry_recovered', 'sum_contry_vaccinations',
-            'last_date_modified')
+        fields = ('country', 'date', 'total_cases', 'total_deaths', 
+            'people_fully_vaccinated', 'population')
 
 
 covid_greece_schema = CovidGreeceSchema()
