@@ -22,17 +22,18 @@ def get_summary_covid_data_greece():
 
 @app.route('/covid19/summary-data/greece', methods=['POST'])
 def add_summary_covid_data_greece():
-    sum_greece_cases = request.json['sum_greece_cases']
-    sum_greece_deaths = request.json['sum_greece_deaths']
-    sum_greece_recovered = request.json['sum_greece_recovered']
-    sum_greece_vaccinations = request.json['sum_greece_vaccinations']
-    last_date_modified = request.json['last_date_modified']
+    country = request.json['country']
+    date = request.json['date']
+    total_cases = request.json['total_cases']
+    total_deaths = request.json['total_deaths']
+    people_fully_vaccinated = request.json['people_fully_vaccinated']
+    population = request.json['population']
 
-    last_date_modified_obj = datetime.datetime.strptime(last_date_modified, '%Y-%m-%d').date()
+    date_obj = datetime.datetime.strptime(date, '%Y-%m-%d').date()
 
     new_sum_greece_covid = SumCovidGreeceModel(
-        sum_greece_cases, sum_greece_deaths, sum_greece_recovered, 
-        sum_greece_vaccinations, last_date_modified_obj)
+        country, date_obj, total_cases, total_deaths, people_fully_vaccinated, 
+        population)
     
     db.session.add(new_sum_greece_covid)
     db.session.commit()
@@ -43,19 +44,21 @@ def add_summary_covid_data_greece():
 def update_summary_covid_data_greece():
     sum_greece_data = SumCovidGreeceModel.query.filter_by(id=1).first()
 
-    sum_greece_cases = request.json['sum_greece_cases']
-    sum_greece_deaths = request.json['sum_greece_deaths']
-    sum_greece_recovered = request.json['sum_greece_recovered']
-    sum_greece_vaccinations = request.json['sum_greece_vaccinations']
-    last_date_modified = request.json['last_date_modified']
+    country = request.json['country']
+    date = request.json['date']
+    total_cases = request.json['total_cases']
+    total_deaths = request.json['total_deaths']
+    people_fully_vaccinated = request.json['people_fully_vaccinated']
+    population = request.json['population']
 
-    last_date_modified_obj = datetime.datetime.strptime(last_date_modified, '%Y-%m-%d').date()
+    date_obj = datetime.datetime.strptime(date, '%Y-%m-%d').date()
 
-    sum_greece_data.sum_greece_cases = sum_greece_cases
-    sum_greece_data.sum_greece_deaths = sum_greece_deaths
-    sum_greece_data.sum_greece_recovered = sum_greece_recovered
-    sum_greece_data.sum_greece_vaccinations = sum_greece_vaccinations
-    sum_greece_data.last_date_modified = last_date_modified_obj
+    sum_greece_data.country = country
+    sum_greece_data.date = date
+    sum_greece_data.total_cases = total_cases
+    sum_greece_data.total_deaths = total_deaths
+    sum_greece_data.people_fully_vaccinated = people_fully_vaccinated
+    sum_greece_data.population = population
 
     db.session.commit()
 
@@ -149,15 +152,18 @@ def get_summary_covid_data_world():
 
 @app.route('/covid19/summary-data/world', methods=['POST'])
 def add_summary_covid_data_world():
-    sum_world_cases = request.json['sum_world_cases']
-    sum_world_deaths = request.json['sum_world_deaths']
-    sum_world_recovered = request.json['sum_world_recovered']
-    sum_world_vaccinations = request.json['sum_world_vaccinations']
-    last_date_modified = request.json['last_date_modified']
+    country = request.json['country']
+    date = request.json['date']
+    total_cases = request.json['total_cases']
+    total_deaths = request.json['total_deaths']
+    people_fully_vaccinated = request.json['people_fully_vaccinated']
+    population = request.json['population']
     
-    last_date_modified_obj = datetime.datetime.strptime(last_date_modified, '%Y-%m-%d').date()
-    new_sum_world_data = SumCovidWorldModel(sum_world_cases, sum_world_deaths, 
-        sum_world_recovered, sum_world_vaccinations, last_date_modified_obj)
+    date_obj = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+    
+    new_sum_world_data = SumCovidWorldModel(
+        country, date_obj, total_cases, total_deaths, people_fully_vaccinated, 
+        population)
         
     db.session.add(new_sum_world_data)
     db.session.commit()
@@ -168,19 +174,21 @@ def add_summary_covid_data_world():
 def update_summary_covid_data_world():
     sum_world_data = SumCovidWorldModel.query.filter_by(id=1).first()
 
-    sum_world_cases = request.json['sum_world_cases']
-    sum_world_deaths = request.json['sum_world_deaths']
-    sum_world_recovered = request.json['sum_world_recovered']
-    sum_world_vaccinations = request.json['sum_world_vaccinations']
-    last_date_modified = request.json['last_date_modified']
+    country = request.json['country']
+    date = request.json['date']
+    total_cases = request.json['total_cases']
+    total_deaths = request.json['total_deaths']
+    people_fully_vaccinated = request.json['people_fully_vaccinated']
+    population = request.json['population']
 
-    last_date_modified_obj = datetime.datetime.strptime(last_date_modified, '%Y-%m-%d').date()
-
-    sum_world_data.sum_world_cases = sum_world_cases
-    sum_world_data.sum_world_deaths = sum_world_deaths
-    sum_world_data.sum_world_recovered = sum_world_recovered
-    sum_world_data.sum_world_vaccinations = sum_world_vaccinations
-    sum_world_data.last_date_modified = last_date_modified_obj
+    date_obj = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+    
+    sum_world_data.country = country
+    sum_world_data.date = date
+    sum_world_data.total_cases = total_cases
+    sum_world_data.total_deaths = total_deaths
+    sum_world_data.people_fully_vaccinated = people_fully_vaccinated
+    sum_world_data.population = population
 
     db.session.commit()
 
@@ -210,17 +218,17 @@ def get_summary_covid_data_specific_country(country):
 @app.route('/covid19/summary-data/country', methods=['POST'])
 def add_summary_covid_data_country():
     country = request.json['country']
-    sum_country_cases = request.json['sum_country_cases']
-    sum_country_deaths = request.json['sum_country_deaths']
-    sum_country_recovered = request.json['sum_country_recovered']
-    sum_country_vaccinations = request.json['sum_country_vaccinations']
-    last_date_modified = request.json['last_date_modified']
-    
-    last_date_modified_obj = datetime.datetime.strptime(last_date_modified, '%Y-%m-%d').date()
+    date = request.json['date']
+    total_cases = request.json['total_cases']
+    total_deaths = request.json['total_deaths']
+    people_fully_vaccinated = request.json['people_fully_vaccinated']
+    population = request.json['population']
 
-    new_sum_country_data = SumCovidCountryModel(country, sum_country_cases, 
-    sum_country_deaths, sum_country_recovered, sum_usa_vaccinations,
-    last_date_modified_obj)
+    date_obj = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+
+    new_sum_country_data = SumCovidCountryModel(
+        country, date_obj, total_cases, total_deaths, people_fully_vaccinated, 
+        population)
         
     db.session.add(new_sum_country_data)
     db.session.commit()
@@ -232,18 +240,20 @@ def update_summary_covid_data_usa(country):
     sum_country_data = SumCovidCountryModel.query.filter_by(country=country).first()
 
     country = request.json['country']
-    sum_country_cases = request.json['sum_country_cases']
-    sum_country_deaths = request.json['sum_country_deaths']
-    sum_country_recovered = request.json['sum_country_recovered']
-    sum_country_vaccinations = request.json['sum_country_vaccinations']
-    last_modified_date = request.json['last_modified_date']
+    date = request.json['date']
+    total_cases = request.json['total_cases']
+    total_deaths = request.json['total_deaths']
+    people_fully_vaccinated = request.json['people_fully_vaccinated']
+    population = request.json['population']
 
+    date_obj = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+    
     sum_country_data.country = country
-    sum_country_data.sum_country_cases = sum_country_cases
-    sum_country_data.sum_country_deaths = sum_country_deaths
-    sum_country_data.sum_country_recovered = sum_country_recovered
-    sum_country_data.sum_country_vaccinations = sum_country_vaccinations
-    sum_country_data.last_modified_date = last_modified_date
+    sum_country_data.date = date
+    sum_country_data.total_cases = total_cases
+    sum_country_data.total_deaths = total_deaths
+    sum_country_data.people_fully_vaccinated = people_fully_vaccinated
+    sum_country_data.population = population
 
     db.session.commit()
 

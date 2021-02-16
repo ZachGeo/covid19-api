@@ -11,7 +11,8 @@ class AccessSummaryData:
     
     def __init__(self):
 
-        self.scrape_ourworldindata_url = 'https://covid.ourworldindata.org/data/owid-covid-data.csv'
+        self.scrape_ourworldindata_url = """
+            https://covid.ourworldindata.org/data/owid-covid-data.csv"""
     
     def get_data(self):
 
@@ -46,7 +47,8 @@ class AccessSummaryData:
             (specific_cols_data.location.isin(selected_countries))
         ]
         
-        requested_data = select_specific_data.set_index('location').T.to_dict(orient='dict')
+        requested_data = select_specific_data.set_index(
+            'location').T.to_dict(orient='dict')
 
         return requested_data
 

@@ -1,62 +1,55 @@
 from bs4 import BeautifulSoup
-from datetime import date
+from datetime import date, timedelta
 from lxml import html
 
+import pandas as pd
 import requests
 import re
 import json
 import pickle
 
-class CovidScraper:
+class CovidGreeceScraper:
     def __init__(self):
-        self.api_url = 'http://127.0.0.1:5000/covidgr'
-        self.api_sum_url = 'http://127.0.0.1:5000/summary/covidgr'
-        self.api_test_url = 'http://127.0.0.1:5000/covidgr/tests'
-        self.scrape_url = 'https://www.worldometers.info/coronavirus/country/greece/'
-        self.scrape_tests_url = 'https://github.com/owid/covid-19-data/blob/master/public/data/testing/covid-testing-latest-data-source-details.csv'
-        self.today = ''
-        self.covid_data = []
-        self.summary_data= []
+        self.worldmeters_url = """
+            https://www.worldometers.info/coronavirus/country/greece/"""
 
-    def scrape_data(self):
+        self.owid_tests_url = 'https://raw.githubusercontent.com/owid/' \
+            'covid-19-data/master/public/data/testing/' \
+            'covid-testing-all-observations.csv'
+
+        self.owid_vaccinations_url = 'https://raw.githubusercontent.com/' \
+            'owid/covid-19-data/master/public/data/' \
+            'vaccinations/vaccinations.csv'
+
+    def get_data(self):
         data = []
-        self.today = str(date.today())
+        today = date.today()
+        date_of_requested_data = today - timedelta(days=3)
 
-        soup = self.scrape_page_content()
-        soup_test_page = self.scrape_page_content_contains_tests()
+        soup = self.scrape_worldmeteres_content(self.worldmeters_url)
 
         if soup:
-            self.get_daily_data(soup)
-            self.get_summary_data(soup)
+            main_data = self.get_daily_main_data(soup)
 
-            if self.summary_data and self.covid_data:
-                self.storeSummaryData(self.summary_data)
-                self.storeData(self.today, self.covid_data)
+        tests_data = self.scrape_owid_tests_content(
+            date_of_requested_data, self.owid_tests_url)
+    
+        vaccinations_data = self.scrape_owid_vaccinations_content(
+            date_of_requested_data, self.owid_vaccinations_url)
         
-        # if soup_test_page:
-        #     tests_data = self.get_tests_per_day(soup_test_page)
-
-        #     if tests_data[0]:
-        #         post_daily_tests_covid_data = self.call_api_post_tested_covid_data(
-        #             tests_data[0], tests_data[1])
-        #         data.append(post_daily_tests_covid_data)
+        data = self.store_data(main_data, tests_data, vaccinations_data)
 
         return data
 
-    def scrape_page_content(self):
-        page = requests.get(self.scrape_url)
+    def scrape_worldmeteres_content(self, url):
+        page = requests.get(url)
         soup = BeautifulSoup(page.content, 'html.parser')
 
         return soup
-    
-    def scrape_page_content_contains_tests(self):
-        page = requests.get(self.scrape_tests_url)
-        soup = BeautifulSoup(page.content, 'html.parser')
-        
-        return soup
-        
-    def get_daily_data(self, soup):
-        covid_data = []
+            
+    def get_daily_main_data(self, soup):
+        main_data_keys = ['cases', 'deaths']
+        main_data_values = []
 
         daily_covidgr_html_content = soup.find('li', class_='news_li')
         get_daily_covidgr_text = daily_covidgr_html_content.text
@@ -65,61 +58,66 @@ class CovidScraper:
             regex = '\d*(.|)\d+'
             match = re.findall(regex, elem)
             if match:
-                covid_data.append(elem)
+                main_data_values.append(int(elem))
         
-        self.covid_data = covid_data
-    
-    def get_summary_data(self, soup):
-        summary_data = []
+        main_data = dict(zip(main_data_keys, main_data_values))
 
-        all_cases_covidgr_html_content = soup.find_all(
-            'div', class_='maincounter-number')
+        return main_data
+    
+    def scrape_owid_tests_content(self, date, url):
+
+        data_key = ['tests']
+        str_date = date.strftime("%Y-%m-%d")
+
+        selected_columns = ['ISO code', 'Date', 'Daily change in cumulative total']
+        selected_country = ['GRC']
+        selected_date = [str_date]
+
+        specific_cols_data = pd.read_csv(
+            url, usecols=selected_columns, low_memory=True)
+
+        select_specific_data = specific_cols_data[
+            (specific_cols_data['Date'].isin(selected_date)) &
+            (specific_cols_data['ISO code'].isin(selected_country))
+        ]
+
+        requested_data = select_specific_data.to_dict('list')
+        tests_value = int(requested_data['Daily change in cumulative total'][0])
+
+        tests_data = {'tests': tests_value}
+
+        return tests_data
+    
+    def scrape_owid_vaccinations_content(self, date, url):
         
-        for item in range(len(all_cases_covidgr_html_content)):
-            regex = r'(\n)|\s'
-            all_cases_data = re.sub(
-                regex, '', all_cases_covidgr_html_content[item].text)
-            summary_data.append(all_cases_data)
+        data_key = ['vaccinations']
+        str_date = date.strftime("%Y-%m-%d")
+
+        selected_columns = ['iso_code', 'date', 'daily_vaccinations_raw']
+        selected_country = ['GRC']
+        selected_date = [str_date]
+
+        specific_cols_data = pd.read_csv(
+            url, usecols=selected_columns, low_memory=True)
         
-        self.summary_data = summary_data
-    
-    def get_tests_per_day(self, tree):
+        select_specific_data = specific_cols_data[
+            (specific_cols_data['date'].isin(selected_date)) &
+            (specific_cols_data['iso_code'].isin(selected_country))
+        ]
 
-        html_content = tree.find('tr', id='LC34').find_all('td')
-        country_code = html_content[1]
-        date_test = html_content[3].text
+        requested_data = select_specific_data.to_dict('list')
 
-        if country_code.text == 'GRC':
-            today_tests = html_content[10].text
-            total_tests = html_content[8].text
+        vaccinations_value = int(requested_data['daily_vaccinations_raw'][0])
+        vaccinations_data = {'vaccinations': vaccinations_value}
         
-        return [date_test, today_tests]
+        return vaccinations_data
     
-    def call_api_post_tested_covid_data(self, today, tests):
-        headers = {
-            'Content-type': 'application/json',
-        }
-
-        data = json.dumps({"date": today, "daily_test": tests})
-
-        response_tests = requests.post(
-            self.api_test_url, headers=headers, data=data)
-
-        return response_tests.json()
+    def store_data(self, main_data, tests_data, vaccinations_data):
+        data = {**main_data, **tests_data, **vaccinations_data}
+        
+        print(data)
+        return data
     
-    def storeSummaryData(self, summary_data):
-        sum_data = {"sum_cases": summary_data[0], "sum_deaths": summary_data[1], "sum_recovered": summary_data[2]}
-
-        with open('../data/covid19_greece_summary_data.pickle', 'wb') as f:
-            pickle.dump(sum_data, f)
-    
-    def storeData(self, today, covid_data):
-        data = {"date": today, "cases": covid_data[0], "deaths": covid_data[1]}
-
-        with open('../data/covid19_greece_data.pickle', 'wb') as f:
-            pickle.dump(data, f)
-
 if __name__ == '__main__':
-    cs = CovidScraper()
-    results = cs.scrape_data()
-    print(results)
+    cgs = CovidGreeceScraper()
+    cgs.get_data()
