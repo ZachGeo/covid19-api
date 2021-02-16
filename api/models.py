@@ -9,9 +9,9 @@ class CovidGreeceModel(db.Model):
     deaths = db.Column(db.Integer)
     vaccinations = db.Column(db.Integer)
 
-    def __init__(self, date, cases, tests, deaths, vaccinations):
+    def __init__(self, country='Greece', date, cases, tests, deaths, vaccinations):
 
-        self.country = 'Greece'
+        self.country = country
         self.date = date
         self.cases = cases
         self.tests = tests
