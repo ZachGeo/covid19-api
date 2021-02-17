@@ -45,7 +45,10 @@ class AccessSummaryData:
             'World', 'Greece', 'France', 'Germany', 'United Kingdom',
             'Japan', 'United States', 'Canada', 'Russia', 'China',
             'India', 'Austalia', 'South Africa', 'United Arab Emirates', 
-            'European Union']
+            'European Union', 'Africa', 'Argentina', 'Asia', 'Australia',
+            'Brazil', 'Europe', 'Israel', 'Italy', 'Mexico', 'Netherlands',
+            'North America', 'Oceania', 'Portugal', 'South America',
+            'Sweden', 'Turkey']
 
         specific_cols_data = pd.read_csv(
             url, usecols = selected_columns, low_memory=True)

@@ -2,23 +2,23 @@ from api import ma
 
 class CovidGreeceSchema(ma.Schema):
     class Meta:
-        fields = (
-            'country', 'date', 'cases', 'tests', 'deaths', 'vaccinations')
+        fields = ('country', 'date', 'new_cases', 'new_tests', 
+            'new_deaths', 'new_vaccinations')
 
 class SumCovidGreeceSchema(ma.Schema):
     class Meta:
-        fields = ('country', 'date', 'total_cases', 'total_deaths', 
-            'people_fully_vaccinated', 'population')
+        fields = ('country', 'last_updated_date', 'total_cases', 
+            'total_deaths', 'people_fully_vaccinated', 'population')
 
 class SumCovidWorldSchema(ma.Schema):
     class Meta:
-        fields = ('country',  'date', 'total_cases', 'total_deaths', 
-            'people_fully_vaccinated', 'population')
+        fields = ('country', 'last_updated_date', 'total_cases', 
+            'total_deaths', 'people_fully_vaccinated', 'population')
 
 class SumCovidCountrySchema(ma.Schema):
     class Meta:
-        fields = ('country', 'date', 'total_cases', 'total_deaths', 
-            'people_fully_vaccinated', 'population')
+        fields = ('country', 'last_updated_date', 'total_cases', 
+            'total_deaths', 'people_fully_vaccinated', 'population')
 
 
 covid_greece_schema = CovidGreeceSchema()
